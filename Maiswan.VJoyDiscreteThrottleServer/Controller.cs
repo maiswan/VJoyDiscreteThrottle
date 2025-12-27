@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Maiswan.vJoyThrottleServer;
 
 [ApiController]
-[Route("api/throttle")]
+[Route("api/v1")]
 public class Controller : ControllerBase
 {
     private readonly ILogger<Controller> logger;
@@ -15,36 +15,27 @@ public class Controller : ControllerBase
         this.throttle = throttle;
     }
 
-    [HttpGet]
-    public IActionResult GetRaw()
-    {
-        return Ok(throttle.Throttle);
-	}
+    [HttpGet("throttle")]
+    public IActionResult GetThrotle() => Ok(throttle.Throttle);
 
-	[HttpGet("normalized")]
-	public IActionResult GetNormalized()
-	{
-		return Ok(throttle.NormalizedThrottle);
-	}
+	[HttpGet("throttle/scaled")]
+	public IActionResult GetThrottleScaled() => Ok(throttle.ThrottleScaled);
 
-	[HttpPost("increment")]
-	public IActionResult IncrementThrottle()
-	{
-		throttle.Increment();
-		return GetRaw();
-	}
+	[HttpPost("notch/increment")]
+	public IActionResult IncrementNotch() => Ok(throttle.IncrementNotch());
 
-	[HttpPost("decrement")]
-	public IActionResult DecrementThrottle()
-	{
-		throttle.Decrement();
-		return GetRaw();
-	}
+	[HttpPost("notch/decrement")]
+	public IActionResult DecrementNotch() => Ok(throttle.DecrementNotch());
 
-	[HttpPost("neutral")]
-	public IActionResult SetNeutralThrottle()
-	{
-		throttle.SetNeutral();
-		return GetRaw();
-	}
+	[HttpPost("notch/neutral")]
+	public IActionResult SetNeutralNotch() => Ok(throttle.SetNeutralNotch());
+
+    [HttpPost("notch/neutral/toward")]
+    public IActionResult SetTowardNeutralNotch() => Ok(throttle.SetTowardNeutralNotch());
+
+    [HttpPost("notch/min")]
+    public IActionResult SetMinNotch() => Ok(throttle.SetMinNotch());
+
+    [HttpPost("notch/max")]
+    public IActionResult SetMaxNotch() => Ok(throttle.SetMaxNotch());
 }

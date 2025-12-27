@@ -1,24 +1,29 @@
 ## vJoyDiscreteThrottle
 
-> [!IMPORTANT]
-> This program is bare-bones at this stage.
+A simple HTTP server that manages a virtual, discrete-stepped throttle as a vJoy device.
 
-This is a simple HTTP server that creates and manages a virtual, discrete-stepped throttle as a vJoy device.
+This program is useful when train simulators use continuous throttle input (like the [Flexity Swift](https://en.wikipedia.org/wiki/Flexity_Swift)),
+but you want to control the throttle in discrete steps (like many Japanese trains).
 
-* **Precise Control**: No more mashing the keyboard up and down to hit a specific throttle value.
-* **Discrete Notches**: Inspired by Japanese train (simulators), this server brings discrete throttle notches to European-style smooth control levers, bridging the gap for a unique driving experience.
+The major difficulty with continuous throttles is accurately controlling them using a keyboard. It's fairly easy to under/overshoot the desired throttle setting. This program maps the continuous throttle to discrete steps, so you can accurately control the train's power settings.
+
+---
 
 ### API Endpoint
 
-All endpoints are on the `/api/throttle` route.
+All endpoints are on the `/api/v1` route.
 
-| Type | Route | Effect |
-|------|-------|--------|
-| GET | / | Get current throttle level |
-| GET | /normalized | Get current throttle level in [0, 32767] |
-| POST | /increment | Increase the throttle by a discrete step |
-| POST | /decrement | The opposite |
-| POST | /neutral | Reset the throttle to neutral |
+| Method | Route | Behavior |
+|--------|-------|----------|
+| GET | /throttle | Return current throttle level |
+| GET | /throttle/scaled | Return current throttle level scaled to [0, 32767] |
+| POST | /notch/increment | Increase throttle by a discrete step <br> (<kbd>Z</kbd> key in OpenBVE/BVE Trainsim) |
+| POST | /notch/decrement | Decrease throttle by a discerte step <br> (<kbd>Q</kbd> key in OpenBVE/BVE Trainsim) |
+| POST | /notch/neutral/toward | Move throttle one notch toward neutral <br> (<kbd>A</kbd> in OpenBVE/BVE Trainsim)
+| POST | /notch/neutral | Set throttle to neutral |
+| POST | /notch/min | Set throttle to minimum |
+| POST | /notch/max | Set throttle to maximum |
+
 
 ### Acknowledgements
 
