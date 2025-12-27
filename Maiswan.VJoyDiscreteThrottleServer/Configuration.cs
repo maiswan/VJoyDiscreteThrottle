@@ -1,12 +1,17 @@
-﻿namespace Maiswan.vJoyThrottle;
+﻿using System.Text.Json.Serialization;
 
-internal record Notches
-{
-	public int MaxBrake { get; init; } = 0;
-	public int MaxPower { get; init; } = 0;
-}
+namespace Maiswan.vJoyThrottle;
 
-internal class Configuration
+public record Configuration
 {
-	public Notches Notches { get; init; } = new();
+	public required double[] Notches { get; init; }
+	public required int DefaultNotch { get; init; }
+	public required int NeutralNotch { get; init; }
+
+	public required uint JoystickId { get; init; }
+
+	[JsonConverter(typeof(JsonStringEnumConverter))]
+	public required HID_USAGES Axis { get; init; }
+
+	public required uint ServerPort { get; init; }
 }
