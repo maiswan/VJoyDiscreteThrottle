@@ -1,35 +1,62 @@
-﻿using vJoyInterfaceWrap;
+﻿using Maiswan.vJoyThrottle;
+using vJoyInterfaceWrap;
 
 namespace Maiswan.vJoyThrottleServer;
 
 public class DiscreteThrottle : IDisposable
 {
-	private int throttle = 0;
-	public int Throttle
+	public double Throttle => Notches[CurrentNotchIndex];
+    public int ThrottleScaled => GetThrottleScaled();
+    private int GetThrottleScaled()
 	{
-		get => throttle;
-		private set
+		// Map [-1, 1] to [0, Scale]
+		return (int)((Throttle + 1) / 2 * Scale);
+    }
+
+	private double[] notches = [0];
+	public double[] Notches
+	{
+		get => notches;
+		set
 		{
-			throttle = value;
-			UpdateVJoyAxisValue();
-		}
+			notches = [.. value.OrderBy(x => x)];
+			CurrentNotchIndex = currentNotchIndex; // Reclamp current index
+        }
 	}
 
-	public int NormalizedThrottle => GetJoystickValue();
-	public int MaxBrake { get; set; } = 0;
-	public int MaxPower { get; set; } = 0;
-
-	private readonly vJoy joystick;
-	private const int id = 1;
-	private const int Scale = 32767;
-
-	public DiscreteThrottle(int maxBrake, int maxPower)
+	private int currentNotchIndex = 0;
+	public int CurrentNotchIndex
 	{
-		MaxBrake = maxBrake;
-		MaxPower = maxPower;
-		joystick = new();
-		InitializeVJoy();
-		UpdateVJoyAxisValue();
+		get => currentNotchIndex;
+		set
+		{
+			currentNotchIndex = Math.Clamp(value, 0, Notches.Length - 1);
+			UpdateVJoyDevice();
+		}
+    }
+
+    private int neutralNotchIndex = 0;
+    public int NeutralNotchIndex
+    {
+        get => neutralNotchIndex;
+        set => neutralNotchIndex = Math.Clamp(value, 0, Notches.Length - 1);
+    }
+
+
+    private readonly vJoy joystick = new();
+	private readonly uint joystickId;
+	private const int Scale = 32767;
+	private const HID_USAGES Axis = HID_USAGES.HID_USAGE_RX;
+
+
+    public DiscreteThrottle(Configuration config)
+    {
+		joystickId = config.JoystickId;
+        InitializeVJoy();
+
+		Notches = config.Notches;
+		currentNotchIndex = config.DefaultNotch;
+        neutralNotchIndex = config.NeutralNotch;
 	}
 
 	// https://qiita.com/Limitex/items/23faaf3a0ef6ca8832e1
@@ -37,51 +64,54 @@ public class DiscreteThrottle : IDisposable
 	{
 		if (!joystick.vJoyEnabled())
 		{
-			Console.WriteLine("vJoy driver not enabled.");
-			return;
+			throw new InvalidOperationException("vJoy driver not enabled.");
 		}
 
-		if (!joystick.isVJDExists(id))
+		if (!joystick.isVJDExists(joystickId))
 		{
-			Console.WriteLine("vJoy Device with ID {0} is not available.", id);
-			return;
+			throw new InvalidOperationException(
+				string.Format("vJoy Device {0} does not exist.", joystickId)
+			);
 		}
 
-		VjdStat status = joystick.GetVJDStatus(id);
+		VjdStat status = joystick.GetVJDStatus(joystickId);
 		if (status != VjdStat.VJD_STAT_FREE)
 		{
-			Console.WriteLine("vJoy Device with ID {0} is not free.", id);
-			return;
+            throw new InvalidOperationException(
+                string.Format("vJoy Device {0} is not free.", joystickId)
+            );
 		}
 
-		if (!joystick.AcquireVJD(id))
+		if (!joystick.AcquireVJD(joystickId))
 		{
-			Console.WriteLine("vJoy Device with ID {0} dose not activate.", id);
-			return;
-		}
+            throw new InvalidOperationException(
+                string.Format("vJoy Device {0} cannot be acquired.", joystickId)
+            );
+        }
 	}
+    public void Dispose()
+    {
+        joystick.RelinquishVJD(joystickId);
+        GC.SuppressFinalize(this);
+    }
 
-	private int GetJoystickValue()
+    private void UpdateVJoyDevice()
 	{
-		const double middle = 1/2d;
-		double value = Throttle / (double)(Throttle >= 0 ? MaxPower : -1 * MaxBrake);
-		return (int)((middle + value / 2) * Scale);
+		joystick.SetAxis(GetThrottleScaled(), joystickId, Axis);
 	}
 
-	private void UpdateVJoyAxisValue()
+    // Shortcuts (if the caller doesn't want to touch CurrentNotchIndex directly)
+    // Over/underflow handled by CurrentNotchIndex setter
+    public int SetMinNotch() => CurrentNotchIndex = 0;
+	public int SetNeutralNotch() => CurrentNotchIndex = neutralNotchIndex;
+    public int SetMaxNotch() => CurrentNotchIndex = Notches.Length - 1;
+
+	// ~ OpenBVE/BVE's Q/A/Z controls
+    public int DecrementNotch() => CurrentNotchIndex--;
+	public int SetTowardNeutralNotch()
 	{
-		joystick.SetAxis(GetJoystickValue(), id, HID_USAGES.HID_USAGE_RX);
+		if (CurrentNotchIndex == NeutralNotchIndex) { return CurrentNotchIndex; }
+		return CurrentNotchIndex > NeutralNotchIndex ? DecrementNotch() : IncrementNotch();
 	}
-
-	public void SetMaxBrake() => Throttle = MaxBrake;
-	public void SetNeutral() => Throttle = 0;
-	public void SetMaxPower() => Throttle = MaxPower;
-	public void Increment() => Throttle += Throttle < MaxPower ? 1 : 0;
-	public int Decrement() => Throttle += Throttle > MaxBrake ? -1 : 0;
-
-	public void Dispose()
-	{
-		joystick.RelinquishVJD(id);
-		GC.SuppressFinalize(this);
-	}
+    public int IncrementNotch() => CurrentNotchIndex++;
 }
