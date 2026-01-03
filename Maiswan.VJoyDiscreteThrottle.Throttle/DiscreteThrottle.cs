@@ -4,13 +4,13 @@ namespace Maiswan.VJoyDiscreteThrottle.Throttle;
 
 public class DiscreteThrottle : IDisposable
 {
-	public double Throttle => Notches[CurrentNotchIndex];
-    public int ThrottleScaled => GetThrottleScaled();
-    private int GetThrottleScaled()
-	{
-		// Map [-1, 1] to [0, Scale]
-		return (int)((Throttle + 1) / 2 * Scale);
-    }
+	public double Throttle => GetThrottle(CurrentNotchIndex);
+    public int ThrottleScaled => GetThrottleScaled(CurrentNotchIndex);
+
+    private double GetThrottle(int notchIndex) => Notches[notchIndex];
+
+	// Map [-1, 1] to [0, Scale]
+	private int GetThrottleScaled(int notchIndex) => (int)((GetThrottle(notchIndex) + 1) / 2 * Scale);
 
 	private double[] notches = [0];
 	public double[] Notches
@@ -29,8 +29,19 @@ public class DiscreteThrottle : IDisposable
 		get => currentNotchIndex;
 		set
 		{
+			int oldNotch = currentNotchIndex;
+			double oldThrottle = Throttle;
+			double oldThrottleScaled = ThrottleScaled;
+
 			currentNotchIndex = Math.Clamp(value, 0, Notches.Length - 1);
-			UpdateVJoyDevice();
+            SetVJoyDeviceValue(GetThrottleScaled(currentNotchIndex));
+
+			if (oldNotch == currentNotchIndex) { return; }
+
+			double throttle = GetThrottle(currentNotchIndex);
+			int throttleScaled = GetThrottleScaled(currentNotchIndex);
+			ThrottleChangedEventArgs args = new(currentNotchIndex, throttle, throttleScaled, oldNotch, oldThrottle, oldThrottleScaled);
+			OnThrottleChanged?.Invoke(this, args);
 		}
     }
 
@@ -41,12 +52,12 @@ public class DiscreteThrottle : IDisposable
         set => neutralNotchIndex = Math.Clamp(value, 0, Notches.Length - 1);
     }
 
+	public event EventHandler<ThrottleChangedEventArgs>? OnThrottleChanged;
 
     private readonly vJoy joystick = new();
 	private readonly uint joystickId;
 	private const int Scale = 32767;
 	private const HID_USAGES Axis = HID_USAGES.HID_USAGE_RX;
-
 
     public DiscreteThrottle(Configuration config)
     {
@@ -94,9 +105,9 @@ public class DiscreteThrottle : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void UpdateVJoyDevice()
+    private void SetVJoyDeviceValue(int value)
 	{
-		joystick.SetAxis(GetThrottleScaled(), joystickId, Axis);
+		joystick.SetAxis(value, joystickId, Axis);
 	}
 
     // Shortcuts (if the caller doesn't want to touch CurrentNotchIndex directly)

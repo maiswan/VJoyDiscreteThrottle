@@ -11,7 +11,14 @@ ServerConfiguration config = JsonSerializer.Deserialize<ServerConfiguration>(raw
     ?? throw new InvalidOperationException("Invalid configuration");
 
 // Initialize virtual throttle and conduct DI
+ThrottleEventBroadcaster broadcaster = new();
 using DiscreteThrottle throttle = new(config);
+throttle.OnThrottleChanged += async (_, value) =>
+{
+    await broadcaster.BroadcastAsync(value);
+};
+builder.Services.AddSingleton(broadcaster);
+builder.Services.AddSingleton<SseExtensions>();
 builder.Services.AddSingleton(throttle);
 
 // Add services to the container.
