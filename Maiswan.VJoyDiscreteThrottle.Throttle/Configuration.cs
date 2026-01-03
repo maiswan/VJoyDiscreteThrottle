@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Maiswan.vJoyThrottle;
+namespace Maiswan.VJoyDiscreteThrottle.Throttle;
 
 public record Configuration
 {
@@ -12,6 +12,4 @@ public record Configuration
 
 	[JsonConverter(typeof(JsonStringEnumConverter))]
 	public required HID_USAGES Axis { get; init; }
-
-	public required uint ServerPort { get; init; }
 }

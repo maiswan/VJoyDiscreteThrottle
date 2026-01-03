@@ -1,19 +1,32 @@
+using Maiswan.VJoyDiscreteThrottle.Throttle;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Maiswan.vJoyThrottleServer;
+namespace Maiswan.VJoyDiscreteThrottle.Server;
 
 [ApiController]
 [Route("api/v1")]
-public class Controller : ControllerBase
+public class Controller(SseExtensions sse, DiscreteThrottle throttle) : ControllerBase
 {
-    private readonly ILogger<Controller> logger;
-	private readonly DiscreteThrottle throttle;
+    private readonly SseExtensions sse = sse;
+	private readonly DiscreteThrottle throttle = throttle;
 
-	public Controller(ILogger<Controller> logger, DiscreteThrottle throttle)
-    {
-        this.logger = logger;
-        this.throttle = throttle;
-    }
+    [HttpGet("throttle/stream")]
+    public async Task GetThrottleStream() => await sse.NewStreamAsync(
+        HttpContext, Response,
+        e => new { e.Throttle, e.OldThrottle }
+    );
+
+    [HttpGet("throttle/scaled/stream")]
+    public async Task GetThrottleScaledStream() => await sse.NewStreamAsync(
+        HttpContext, Response,
+        e => new { e.ThrottleScaled, e.OldThrottleScaled }
+    );
+
+    [HttpGet("notch/stream")]
+    public async Task GetNotchStream() => await sse.NewStreamAsync(
+        HttpContext, Response,
+        e => new { e.Notch, e.OldNotch }
+    );
 
     [HttpGet("throttle")]
     public IActionResult GetThrotle() => Ok(throttle.Throttle);
