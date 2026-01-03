@@ -7,6 +7,15 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
+	<PropertyGroup>
+		<Version>1.1.0</Version>
+		<AssemblyVersion>1.1.0</AssemblyVersion>
+		<FileVersion>1.1.0</FileVersion>
+		<PackageVersion>1.1.0</PackageVersion>
+		<Authors>maiswan</Authors>
+		<AssemblyName>VJoyDiscreteThrottle</AssemblyName>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Reference Include="vJoyInterfaceWrap">
 			<HintPath>vJoyInterfaceWrap.dll</HintPath>

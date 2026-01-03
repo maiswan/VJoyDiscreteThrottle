@@ -18,9 +18,6 @@ builder.Services.AddSingleton(throttle);
 builder.Services.AddControllers();
 var app = builder.Build();
 
-// Home route
-app.MapGet("/", () => "maiswan/VJoyDiscreteThrottle");
-
 // Configure the HTTP request pipeline.
 app.UseAuthorization();
 app.MapControllers();
