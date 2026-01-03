@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 
-namespace Maiswan.vJoyThrottleServer;
+namespace Maiswan.VJoyDiscreteThrottle.Server;
 
 [ApiController]
 public class Home : ControllerBase

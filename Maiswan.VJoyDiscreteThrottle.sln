@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.13.35828.75
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11312.210
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maiswan.VJoyDiscreteThrottleServer", "Maiswan.VJoyDiscreteThrottleServer\Maiswan.VJoyDiscreteThrottleServer.csproj", "{D49C5B7C-C9D2-4C7C-85C2-630FDD9A39BF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maiswan.VJoyDiscreteThrottle.Throttle", "Maiswan.VJoyDiscreteThrottle.Throttle\Maiswan.VJoyDiscreteThrottle.Throttle.csproj", "{82AA8DB9-DA6B-462D-8120-8CCAA87401FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maiswan.VJoyDiscreteThrottle.Server", "Maiswan.VJoyDiscreteThrottle.Server\Maiswan.VJoyDiscreteThrottle.Server.csproj", "{F76D6E88-C797-C9A9-45F3-EADF1B746D39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D49C5B7C-C9D2-4C7C-85C2-630FDD9A39BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D49C5B7C-C9D2-4C7C-85C2-630FDD9A39BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D49C5B7C-C9D2-4C7C-85C2-630FDD9A39BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D49C5B7C-C9D2-4C7C-85C2-630FDD9A39BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82AA8DB9-DA6B-462D-8120-8CCAA87401FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82AA8DB9-DA6B-462D-8120-8CCAA87401FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82AA8DB9-DA6B-462D-8120-8CCAA87401FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82AA8DB9-DA6B-462D-8120-8CCAA87401FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F76D6E88-C797-C9A9-45F3-EADF1B746D39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F76D6E88-C797-C9A9-45F3-EADF1B746D39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F76D6E88-C797-C9A9-45F3-EADF1B746D39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F76D6E88-C797-C9A9-45F3-EADF1B746D39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,7 +1,6 @@
-﻿using Maiswan.vJoyThrottle;
-using vJoyInterfaceWrap;
+﻿using vJoyInterfaceWrap;
 
-namespace Maiswan.vJoyThrottleServer;
+namespace Maiswan.VJoyDiscreteThrottle.Throttle;
 
 public class DiscreteThrottle : IDisposable
 {

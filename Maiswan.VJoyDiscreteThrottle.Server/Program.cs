@@ -1,5 +1,5 @@
-using Maiswan.vJoyThrottle;
-using Maiswan.vJoyThrottleServer;
+using Maiswan.VJoyDiscreteThrottle.Server;
+using Maiswan.VJoyDiscreteThrottle.Throttle;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Read config
 const string configPath = "./configurations.json";
 string rawJson = File.ReadAllText(configPath);
-Configuration config = JsonSerializer.Deserialize<Configuration>(rawJson)
+ServerConfiguration config = JsonSerializer.Deserialize<ServerConfiguration>(rawJson)
     ?? throw new InvalidOperationException("Invalid configuration");
 
 // Initialize virtual throttle and conduct DI

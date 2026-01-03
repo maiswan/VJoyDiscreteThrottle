@@ -1,6 +1,7 @@
+using Maiswan.VJoyDiscreteThrottle.Throttle;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Maiswan.vJoyThrottleServer;
+namespace Maiswan.VJoyDiscreteThrottle.Server;
 
 [ApiController]
 [Route("api/v1")]
