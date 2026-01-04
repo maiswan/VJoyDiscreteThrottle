@@ -4,8 +4,7 @@ namespace Maiswan.VJoyDiscreteThrottle.Throttle;
 
 public class DiscreteThrottle : IDisposable
 {
-	public double Throttle => GetThrottle(CurrentNotchIndex);
-    public int ThrottleScaled => GetThrottleScaled(CurrentNotchIndex);
+	public ThrottleState ThrottleState { get; } = new();
 
     private double GetThrottle(int notchIndex) => Notches[notchIndex];
 
@@ -28,19 +27,19 @@ public class DiscreteThrottle : IDisposable
 	{
 		get => currentNotchIndex;
 		set
-		{
-			int oldNotch = currentNotchIndex;
-			double oldThrottle = Throttle;
-			double oldThrottleScaled = ThrottleScaled;
+        {
+            value = Math.Clamp(value, 0, Notches.Length - 1);
+            if (value == currentNotchIndex) { return; }
 
-			currentNotchIndex = Math.Clamp(value, 0, Notches.Length - 1);
-            SetVJoyDeviceValue(GetThrottleScaled(currentNotchIndex));
+			currentNotchIndex = value;
+            SetVJoyDeviceValue(GetThrottleScaled(value));
 
-			if (oldNotch == currentNotchIndex) { return; }
+			ThrottleState oldThrottleState = ThrottleState.DeepClone();
+			ThrottleState.Notch = value;
+			ThrottleState.Throttle = GetThrottle(value);
+			ThrottleState.ThrottleScaled = GetThrottleScaled(value);
 
-			double throttle = GetThrottle(currentNotchIndex);
-			int throttleScaled = GetThrottleScaled(currentNotchIndex);
-			ThrottleChangedEventArgs args = new(currentNotchIndex, throttle, throttleScaled, oldNotch, oldThrottle, oldThrottleScaled);
+			ThrottleChangedEventArgs args = new(ThrottleState, oldThrottleState);
 			OnThrottleChanged?.Invoke(this, args);
 		}
     }
