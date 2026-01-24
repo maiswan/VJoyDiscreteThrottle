@@ -56,7 +56,7 @@ public class DiscreteThrottle : IDisposable
     private readonly vJoy joystick = new();
 	private readonly uint joystickId;
 	private const int Scale = 32767;
-	private const HID_USAGES Axis = HID_USAGES.HID_USAGE_RX;
+	private readonly HID_USAGES axis;
 
     public DiscreteThrottle(Configuration config)
     {
@@ -66,6 +66,8 @@ public class DiscreteThrottle : IDisposable
 		Notches = config.Notches;
 		currentNotchIndex = config.DefaultNotch;
         neutralNotchIndex = config.NeutralNotch;
+
+		axis = config.Axis;
 	}
 
 	// https://qiita.com/Limitex/items/23faaf3a0ef6ca8832e1
@@ -98,7 +100,7 @@ public class DiscreteThrottle : IDisposable
             );
         }
 	}
-    public void Dispose()
+	void IDisposable.Dispose()
     {
         joystick.RelinquishVJD(joystickId);
         GC.SuppressFinalize(this);
@@ -106,7 +108,7 @@ public class DiscreteThrottle : IDisposable
 
     private void SetVJoyDeviceValue(int value)
 	{
-		joystick.SetAxis(value, joystickId, Axis);
+		joystick.SetAxis(value, joystickId, axis);
 	}
 
     // Shortcuts (if the caller doesn't want to touch CurrentNotchIndex directly)
