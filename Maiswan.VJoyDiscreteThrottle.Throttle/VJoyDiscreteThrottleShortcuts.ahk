@@ -1,5 +1,5 @@
 #Requires AutoHotkey v2.0
-BaseUrl := "http://localhost:12023/api/v1/"
+BaseUrl := "http://localhost:12023/api/v2/"
 Whr := ComObject('WinHttp.WinHttpRequest.5.1')
 
 Post(RelativeUrl)
