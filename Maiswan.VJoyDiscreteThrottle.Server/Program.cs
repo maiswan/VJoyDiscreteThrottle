@@ -4,22 +4,21 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Read config
-const string configPath = "./configurations.json";
+// Use first available config
+string[] configPaths = [
+    "./configurations.dev.json",
+    "./configurations.prod.json",
+    "./configurations.json",
+];
+string configPath = configPaths.First(File.Exists);
 string rawJson = File.ReadAllText(configPath);
 ServerConfiguration config = JsonSerializer.Deserialize<ServerConfiguration>(rawJson)
     ?? throw new InvalidOperationException("Invalid configuration");
 
 // Initialize virtual throttle and conduct DI
-ThrottleEventBroadcaster broadcaster = new();
-using DiscreteThrottle throttle = new(config);
-throttle.OnThrottleChanged += async (_, value) =>
-{
-    await broadcaster.BroadcastAsync(value);
-};
-builder.Services.AddSingleton(broadcaster);
+builder.Services.AddSingleton<Configuration>(config);
+builder.Services.AddSingleton<DiscreteThrottle>();
 builder.Services.AddSingleton<SseExtensions>();
-builder.Services.AddSingleton(throttle);
 
 // Add services to the container.
 builder.Services.AddControllers();

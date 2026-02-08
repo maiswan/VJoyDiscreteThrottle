@@ -4,8 +4,7 @@ namespace Maiswan.VJoyDiscreteThrottle.Throttle;
 
 public class DiscreteThrottle : IDisposable
 {
-	public double Throttle => GetThrottle(CurrentNotchIndex);
-    public int ThrottleScaled => GetThrottleScaled(CurrentNotchIndex);
+	public ThrottleState ThrottleState { get; } = new();
 
     private double GetThrottle(int notchIndex) => Notches[notchIndex];
 
@@ -28,19 +27,19 @@ public class DiscreteThrottle : IDisposable
 	{
 		get => currentNotchIndex;
 		set
-		{
-			int oldNotch = currentNotchIndex;
-			double oldThrottle = Throttle;
-			double oldThrottleScaled = ThrottleScaled;
+        {
+            value = Math.Clamp(value, 0, Notches.Length - 1);
+            if (value == currentNotchIndex) { return; }
 
-			currentNotchIndex = Math.Clamp(value, 0, Notches.Length - 1);
-            SetVJoyDeviceValue(GetThrottleScaled(currentNotchIndex));
+			currentNotchIndex = value;
+            SetVJoyDeviceValue(GetThrottleScaled(value));
 
-			if (oldNotch == currentNotchIndex) { return; }
+			ThrottleState oldThrottleState = ThrottleState.DeepClone();
+			ThrottleState.Notch = value;
+			ThrottleState.Throttle = GetThrottle(value);
+			ThrottleState.ThrottleScaled = GetThrottleScaled(value);
 
-			double throttle = GetThrottle(currentNotchIndex);
-			int throttleScaled = GetThrottleScaled(currentNotchIndex);
-			ThrottleChangedEventArgs args = new(currentNotchIndex, throttle, throttleScaled, oldNotch, oldThrottle, oldThrottleScaled);
+			ThrottleChangedEventArgs args = new(ThrottleState, oldThrottleState);
 			OnThrottleChanged?.Invoke(this, args);
 		}
     }
@@ -57,7 +56,7 @@ public class DiscreteThrottle : IDisposable
     private readonly vJoy joystick = new();
 	private readonly uint joystickId;
 	private const int Scale = 32767;
-	private const HID_USAGES Axis = HID_USAGES.HID_USAGE_RX;
+	private readonly HID_USAGES axis;
 
     public DiscreteThrottle(Configuration config)
     {
@@ -67,6 +66,8 @@ public class DiscreteThrottle : IDisposable
 		Notches = config.Notches;
 		currentNotchIndex = config.DefaultNotch;
         neutralNotchIndex = config.NeutralNotch;
+
+		axis = config.Axis;
 	}
 
 	// https://qiita.com/Limitex/items/23faaf3a0ef6ca8832e1
@@ -99,7 +100,7 @@ public class DiscreteThrottle : IDisposable
             );
         }
 	}
-    public void Dispose()
+	void IDisposable.Dispose()
     {
         joystick.RelinquishVJD(joystickId);
         GC.SuppressFinalize(this);
@@ -107,7 +108,7 @@ public class DiscreteThrottle : IDisposable
 
     private void SetVJoyDeviceValue(int value)
 	{
-		joystick.SetAxis(value, joystickId, Axis);
+		joystick.SetAxis(value, joystickId, axis);
 	}
 
     // Shortcuts (if the caller doesn't want to touch CurrentNotchIndex directly)

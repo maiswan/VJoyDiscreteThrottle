@@ -3,14 +3,11 @@ using System.Text.Json;
 
 namespace Maiswan.VJoyDiscreteThrottle.Server;
 
-public class SseExtensions(ThrottleEventBroadcaster broadcaster)
+public class SseExtensions(DiscreteThrottle throttle)
 {
-    private readonly ThrottleEventBroadcaster broadcaster = broadcaster;
+    private readonly DiscreteThrottle throttle = throttle;
 
-    public async Task NewStreamAsync(
-        HttpContext context,
-        HttpResponse response,
-        Func<ThrottleChangedEventArgs, object> transformer)
+    public async Task NewStreamAsync(HttpContext context, HttpResponse response)
     {
         response.Headers.Append("Content-Type", "text/event-stream");
         response.Headers.Append("Cache-Control", "no-cache");
@@ -18,16 +15,16 @@ public class SseExtensions(ThrottleEventBroadcaster broadcaster)
 
         CancellationToken token = context.RequestAborted;
 
-        var clientId = broadcaster.Subscribe(async args =>
+        async void OnThrottleChanged(object? sender, ThrottleChangedEventArgs e)
         {
-            var output = transformer(args);
-            var payload = JsonSerializer.Serialize(output);
-            await response.WriteAsync($"data: {payload}\n\n", token);
-            await response.Body.FlushAsync(token);
-        });
+            await WriteAsync(response, e.ThrottleState, token);
+        }
+        throttle.OnThrottleChanged += OnThrottleChanged;
 
         try
         {
+            // Write initial state
+            await WriteAsync(response, throttle.ThrottleState, token);
             await Task.Delay(Timeout.Infinite, token);
         }
         catch (TaskCanceledException)
@@ -36,7 +33,14 @@ public class SseExtensions(ThrottleEventBroadcaster broadcaster)
         }
         finally
         {
-            broadcaster.Unsubscribe(clientId);
+            throttle.OnThrottleChanged -= OnThrottleChanged;
         }
+    }
+
+    private static async Task WriteAsync(HttpResponse response, object payload, CancellationToken token)
+    {
+        var text = JsonSerializer.Serialize(payload);
+        await response.WriteAsync($"data: {text}\n\n", token);
+        await response.Body.FlushAsync(token);
     }
 }
