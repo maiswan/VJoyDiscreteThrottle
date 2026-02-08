@@ -4,8 +4,13 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Read config
-const string configPath = "./configurations.json";
+// Use first available config
+string[] configPaths = [
+    "./configurations.dev.json",
+    "./configurations.prod.json",
+    "./configurations.json",
+];
+string configPath = configPaths.First(File.Exists);
 string rawJson = File.ReadAllText(configPath);
 ServerConfiguration config = JsonSerializer.Deserialize<ServerConfiguration>(rawJson)
     ?? throw new InvalidOperationException("Invalid configuration");

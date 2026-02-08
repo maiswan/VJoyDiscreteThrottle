@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Config
+[Cc]onfigurations.prod.json
+[Cc]onfigurations.dev.json
+
 # User-specific files
 *.rsuser
 *.suo
